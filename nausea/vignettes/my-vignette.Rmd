@@ -1,0 +1,66 @@
+---
+title: 'nausea: Nowcasting Under Structural Breaks'
+output:
+  pdf_document: default
+  rmarkdown::html_vignette: default
+vignette: |
+  %\VignetteIndexEntry{nausea} %\VignetteEngine{knitr::rmarkdown} \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting data
+
+```{r}
+# install.packages("stats") 
+# install.packages("pracma")
+# devtools::install_github("cykbennie/fbi")
+ library("nowcasting")
+```
+
+```{r}
+data_vignette <- get_data()
+```
+
+
+## Factor modelling
+
+```{r}
+factor_model_out <- factor_model(data_vignette[1:200,])
+r_ <- factor_model_out$q.hat
+factors <- factor_model_out$f.q#[,1:r_]
+summary(factor_model_out)
+```
+```{r}
+plot(factor_model_out)
+```
+
+
+## Change point analysis with `mosumvar`
+
+```{r}
+mosumvar_out <- mosumvar_factor(data_vignette[1:200,], p = 1, G= 24, nu = .1, method = "Score")
+```
+
+## Pooled forecasting
+
+```{r}
+pooled_forecast_out <- pooled_forecast(factors, cp = mosumvar_out$cps, p =1, window_size = 50, weights = "robust", n.ahead = 6)
+plot(pooled_forecast_out, main = "factor forecast")
+```
+```{r}
+panel_forecast <- predict.factor_model(factor_model_out, pooled_forecast_out)
+```
+
+
+## Nowcasting
+
+```{r}
+gdp_lm <- lm(mosumvar_gdp_window~ factors)
+gdp_lm
+plot.ts(gdp_lm$fitted.values, xlab = "Time (Quarter)", ylab = "smoothed change in gdp")
+```
+
+

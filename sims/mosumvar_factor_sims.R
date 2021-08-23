@@ -1,6 +1,11 @@
 ## mosumvar_factor sims
 library(mosumvar); library(factorcpt); set.seed(222)
 N_sim <- 500
+fcpt_mosumvar <- factorcpt::get.factor.model(t(data_mosumvar[1:200,]),q=6 )
+fcpt_ar <- ar(t(fcpt_mosumvar$f[1:6,1:53]), aic = T, order.max = 1)
+fcpt_ar2 <- ar(t(fcpt_mosumvar$f[1:6,54:104]), aic = T, order.max = 1)
+fcpt_ar3 <- ar(t(fcpt_mosumvar$f[1:6,105:157]), aic = T, order.max = 1)
+#fcpt_mosumvar$lam[,1:6]
 A_sim1 <- fcpt_ar$ar[,,] 
 A_sim2 <- fcpt_ar2$ar[,,]
 A_sim3 <- fcpt_ar3$ar[,,]
@@ -41,18 +46,21 @@ mosumvar_factor_sim <- function(N_sim=100,r=6,d=150, r_known = T){
 sim1_r_unknown <- mosumvar_factor_sim(100, r_known = F)
 sim1_r_unknown[sim1_r_unknown[,3] == Inf, 3] <- NA
 colMeans(sim1_r_unknown, T)
+apply(sim1_r_unknown, 2, sd, T)
 sim1_r_known <- mosumvar_factor_sim(100, r_known = T)
 sim1_r_known[sim1_r_known[,3] == Inf, 3] <- NA
 colMeans(sim1_r_known, T)
+apply(sim1_r_known, 2, sd, T)
 
 
 # Pesaran/Timmerman 2007
 
 mosumvar_factor_sim_forecast <- function(N_sim=100,r=6,d=150, break_point = 75, A_2 = A_sim3, r_known = T){
-  if(r_known) r_ <- r else r_ <- NULL
-  out <- matrix(NA, nrow = N_sim, ncol = 5)
-  colnames(out) <- c("full","split_oracle","split","pooled_oracle","pooled")
+  #if(r_known) r_ <- r else r_ <- NULL
+  out <- matrix(NA, nrow = N_sim, ncol = 7)
+  colnames(out) <- c("full","split_oracle","split","equal_oracle","equal","robust_oracle","robust")#,"rolling")
   for (sim in 1:N_sim) {
+    if(r_known) r_ <- r else r_ <- NULL
     data1 <- mosumvar::VAR.sim(break_point, coeffs = A_sim1[1:r,1:r])  
     #data2 <- mosumvar::VAR.sim(100, coeffs = A_sim2[1:r,1:r])
     data3 <- mosumvar::VAR.sim(150 - break_point, coeffs = A_2[1:r,1:r])
@@ -61,6 +69,7 @@ mosumvar_factor_sim_forecast <- function(N_sim=100,r=6,d=150, break_point = 75, 
     factors_ <- rbind(data1,data3)
     data_ <- factors_ %*% loadings
     nouniv <- mosumvar_factor(data_,p=1,G=40,r=r_, method = "Score", nu=.1, alpha = .95)
+    r_ <- nouniv$r
     cp <- max(nouniv$cps, 1)
     fm <- get.factor.model(t(data_), q = r_)
     factors_ <- t(fm$f[1:r_,])
@@ -68,33 +77,65 @@ mosumvar_factor_sim_forecast <- function(N_sim=100,r=6,d=150, break_point = 75, 
     full <- ar(factors_, aic = F, order.max = 1) ##full window
     split_oracle <- ar(factors_[break_point:150,], aic = F, order.max = 1) ##post-break window
     split <- ar(factors_[cp:150,], aic = F, order.max = 1) ##post-break window
-    split_window_oracle <- pooled_forecast(factors_, cp = break_point, p =1) ## pooled
-    split_window <- pooled_forecast(factors_, cp = cp, p =1) ## pooled
+    equal_oracle <- pooled_forecast(factors_, cp = break_point, p =1) ## pooled
+    equal <- pooled_forecast(factors_, cp = cp, p =1) ## pooled
+    robust_oracle <- pooled_forecast(factors_, cp = break_point, p =1, weights = "robust") ## pooled
+    robust <- pooled_forecast(factors_, cp = cp, p =1, weights = "robust") ## pooled
+    #rolling <- ar(factors_[121:150,], aic = F, order.max = 1)
     
     pred_full <- t(full$ar[,,] %*%  factors_[nrow(data3),]) %*% t(fm$lam[,1:r_])
-    pred_oracle <-t(split_oracle$ar[,,] %*%   factors_[nrow(data3),]) %*% t(fm$lam[,1:r_])
+    pred_split_oracle <-t(split_oracle$ar[,,] %*%   factors_[nrow(data3),]) %*% t(fm$lam[,1:r_])
     pred_split <-t(split$ar[,,] %*%   factors_[nrow(data3),]) %*% t(fm$lam[,1:r_])
-    pred_window_oracle <-  as.numeric(split_window_oracle %*% t(fm$lam[,1:r_]) )
-    pred_window <-  as.numeric(split_window %*% t(fm$lam[,1:r_]) )
+    pred_equal_oracle <-  as.numeric(equal_oracle %*% t(fm$lam[,1:r_]) )
+    pred_equal <-  as.numeric(equal %*% t(fm$lam[,1:r_]) )
+    pred_robust_oracle <-  as.numeric(robust_oracle %*% t(fm$lam[,1:r_]) )
+    pred_robust <-  as.numeric(robust %*% t(fm$lam[,1:r_]) )
     
     sum_onestep <- sum(onestep^2)
     out[sim,1] <- sum( (pred_full-onestep)^2 )/sum_onestep
-    out[sim,2] <- sum( (pred_oracle-onestep)^2 )/sum_onestep
+    out[sim,2] <- sum( (pred_split_oracle-onestep)^2 )/sum_onestep
     out[sim,3] <- sum( (pred_split-onestep)^2 )/sum_onestep
-    out[sim,4] <- sum( (pred_window_oracle-onestep)^2 )/sum_onestep
-    out[sim,5] <- sum( (pred_window-onestep)^2 )/sum_onestep
+    out[sim,4] <- sum( (pred_equal_oracle-onestep)^2 )/sum_onestep
+    out[sim,5] <- sum( (pred_equal-onestep)^2 )/sum_onestep
+    out[sim,6] <- sum( (pred_robust_oracle-onestep)^2 )/sum_onestep
+    out[sim,7] <- sum( (pred_robust-onestep)^2 )/sum_onestep
+    
     #   out[sim,3] <- pracma::hausdorff_dist(fcpt$common.est.cps, true_cps) / 300
   }
   return(out)
 }
 sim1_forecast_A3 <- mosumvar_factor_sim_forecast(100, r =6)
 sim1_forecast_A2 <- mosumvar_factor_sim_forecast(100, r =6, A_2 = A_sim2)
-
 sim1_forecast_A3_cp30 <- mosumvar_factor_sim_forecast(100, r =6, break_point = 30)
 sim1_forecast_A2_cp30 <- mosumvar_factor_sim_forecast(100, r =6, A_2 = A_sim2, break_point = 30)
-
 sim1_forecast_A3_cp100 <- mosumvar_factor_sim_forecast(100, r =6, break_point = 100)
 sim1_forecast_A2_cp100 <- mosumvar_factor_sim_forecast(100, r =6, A_2 = A_sim2, break_point = 100)
+
+
+colMeans(sim1_forecast_A3)
+apply(sim1_forecast_A3, 2, sd)
+colMeans(sim1_forecast_A3_cp30)
+apply(sim1_forecast_A3_cp30, 2, sd)
+colMeans(sim1_forecast_A3_cp100)
+apply(sim1_forecast_A3_cp100, 2, sd)
+
+
+colMeans(sim1_forecast_A2)
+apply(sim1_forecast_A2, 2, sd)
+colMeans(sim1_forecast_A2_cp30)
+apply(sim1_forecast_A2_cp30, 2, sd)
+colMeans(sim1_forecast_A2_cp100)
+apply(sim1_forecast_A2_cp100, 2, sd)
+
+# r unknown
+sim1_forecast_A3_unknown <- mosumvar_factor_sim_forecast(100, r =6, r_known = F) #broke
+sim1_forecast_A2_unknown <- mosumvar_factor_sim_forecast(100, r =6, A_2 = A_sim2, r_known = F) #broke
+
+sim1_forecast_A3_cp30_unknown <- mosumvar_factor_sim_forecast(100, r =6, break_point = 30, r_known = F)
+sim1_forecast_A2_cp30_unknown <- mosumvar_factor_sim_forecast(100, r =6, A_2 = A_sim2, break_point = 30, r_known = F)
+
+sim1_forecast_A3_cp100_unknown <- mosumvar_factor_sim_forecast(100, r =6, break_point = 100, r_known = F)
+sim1_forecast_A2_cp100_unknown <- mosumvar_factor_sim_forecast(100, r =6, A_2 = A_sim2, break_point = 100, r_known = F)
 
 ###
 ### New factor ---------------------------------------------------
