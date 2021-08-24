@@ -2,7 +2,7 @@
 # mosumvar extension: MOSUM change point analysis for a factor model with low-dimensional VAR dynamics
 
 
-#' Title
+#' Change point detection for a factor model with VAR dynamics
 #'
 #' @param x matrix of data with series as columns
 #' @param p integer VAR order
@@ -48,7 +48,7 @@ mosumvar_factor <- function(x, p, G, method = c("Wald", "Score")[1], estim = c("
 
 ## pooled forecast
 
-#' Title
+#' Change point based forecasting methods for factor series
 #'
 #' @param x matrix of data with series as columns
 #' @param cp integer (vector) of estimated change points

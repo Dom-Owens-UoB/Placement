@@ -17,7 +17,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # install.packages("stats") 
 # install.packages("pracma")
 # devtools::install_github("cykbennie/fbi")
- library("nowcasting")
+library("nausea")
+library("nowcasting")
 ```
 
 ```{r}
