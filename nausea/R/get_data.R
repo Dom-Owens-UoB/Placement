@@ -190,8 +190,11 @@ get_data <- function(observation_end = "2021-06-01"){
   survey_series <- dplyr::full_join(alfred::get_fred_series("CFNAIDIFF", series_name = "CFNAIDIFF", observation_start = "2004-06-01", observation_end = observation_end),
                              alfred::get_fred_series("BACTSAMFRBDAL", series_name = "BACTSAMFRBDAL", observation_start = "2004-06-01", observation_end = observation_end))
   survey_ts <- ts(survey_series[,-1], start = c(2004,6), end = c(2021, 6), frequency = 12)
-  survey_trans <- c(nyfed_trans, 0,0)
+  #survey_trans <- c(nyfed_trans, 0,0)
   data_survey <-  ts.intersect(data_alfred, survey_ts)
+  store_ds <- as.numeric(data_survey[,"data_alfred.GDPC1"])
+  store_ds[is.na(alfred_ts[,"GDPC1"])] <- NA
+  data_survey[,"data_alfred.GDPC1"] <- store_ds[1:length(data_survey[,"data_alfred.GDPC1"])]
 
   # fredmd_0 <- current#read.csv("current.csv")
  #head(fredmd)
@@ -212,11 +215,12 @@ get_data <- function(observation_end = "2021-06-01"){
   data_big <- ts.intersect(data_fredmd, data_survey)
 
 #54,97,
-  mosumvar_ts <- ts(data_big[,-c(146)], start = time(data_big)[1], end = time(data_big)[nrow(data_big)], frequency = 12)
+  mosumvar_ts <- ts(data_big[,-which(colnames(data_big) == "data_survey.data_alfred.GDPC1")], start = time(data_big)[1], end = time(data_big)[nrow(data_big)], frequency = 12)
+  gdp <- ts(data_big[,"data_survey.data_alfred.GDPC1"], start = time(data_big)[1], end = time(data_big)[nrow(data_big)], frequency = 4)
   #mosumvar_gdp <- diff(alfred_ts[,25],3)
   data_mosumvar <- nowcasting::Bpanel(base = mosumvar_ts,
                           trans = rep(0,ncol(mosumvar_ts)),
                           aggregate = FALSE, na.prop = 1, h = 12)
   
-  return(data_mosumvar)
+  return(list(panel = data_mosumvar, gdp = gdp))
 }

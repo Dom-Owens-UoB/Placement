@@ -1,0 +1,39 @@
+---
+title: 'Quick start for nausea'
+output:
+  pdf_document: default
+  rmarkdown::html_vignette: default
+vignette: |
+  %\VignetteIndexEntry{nausea} %\VignetteEngine{knitr::rmarkdown} \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r} 
+library("nausea")
+library("nowcasting")
+```
+
+This vignette is a quick start guide to nowcasting with `nausea`. For more detail, see the other vignette.
+
+```{r}
+#load data
+data(panel)
+#fit factor model
+factor_model_out <- factor_model(panel$panel ) 
+# extract factors
+factors <- factor_model_out$f.q 
+# change point analysis
+mosumvar_out <- mosumvar_factor(panel$panel, p = 1, G= 24, nu = .1, method = "Score") 
+# change point based forecasting of factors, up to six steps ahead
+pooled_forecast_out <- pooled_forecast(factors, cp = mosumvar_out$cps, p =1, window_size = 50, weights = "robust", n.ahead = 6)
+# forecast panel
+panel_forecast <- predict(factor_model_out, pooled_forecast_out)
+# nowcast GDP
+lm_data <- data.frame(gdp = panel$gdp, factors)
+gdp_lm <- lm(gdp ~ ., data = lm_data)  
+predict(gdp_lm, newdata = data.frame(gdp = NA, pooled_forecast_out))
+```
+

@@ -18,7 +18,7 @@ transmap <- function(x){
   
   #c(0, 2, 0, 2, 2, 1)
 
-fredmd <- read.csv("current.csv")
+fredmd <- read.csv("data/current.csv")
 head(fredmd)
 fredmd_1 <- fredmd[-1,]
 ts.plot(fredmd_1[,2:5])
@@ -49,3 +49,5 @@ nowcast_only_fredmd <- nowcast(formula = data_survey.GDPC1 ~ ., data = data_only
                           method = '2s_agg', frequency = freq_only_fredmd ) 
 
 nowcast.plot(nowcast_only_fredmd, type = "fcst")
+
+panel_2004.5_2021.5 <- list(panel = data_big[1:200, -146], gdp = data_big[1:200, 146] )

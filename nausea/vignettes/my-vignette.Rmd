@@ -11,24 +11,31 @@ vignette: |
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r} 
+library("nausea")
+library("nowcasting")
+```
+
 ## Getting data
 
-```{r}
-# install.packages("stats") 
-# install.packages("pracma")
-# devtools::install_github("cykbennie/fbi")
- library("nowcasting")
-```
+`get_data` will download current vintage data from the NYFED and FREDMD databases up to a given date, defaulting to June 2021. These are subjected to stationarity transforms.
 
 ```{r}
 data_vignette <- get_data()
 ```
 
+By default, we include a version up to May 2021.
+```{r}
+data(panel)
+```
 
 ## Factor modelling
 
+`factor_model` will fit a factor model, selecting the factor number using information criterion #2 from Bai and Ng (2002).
+An object of class `factor_model` is returned, which has `summary`, `plot` and `predict` methods.
+
 ```{r}
-factor_model_out <- factor_model(data_vignette[1:200,])
+factor_model_out <- factor_model(panel$panel )
 r_ <- factor_model_out$q.hat
 factors <- factor_model_out$f.q#[,1:r_]
 summary(factor_model_out)
@@ -40,27 +47,35 @@ plot(factor_model_out)
 
 ## Change point analysis with `mosumvar`
 
+Based on the `mosumvar` package and methodology, `mosumvar_factor` will perform change point analysis on the panel assuming a static factor model with low-dimensional vector autoregression (VAR) dynamics on the factors. The order `p` is recommended to be 1. The bandwidth `G` needs to be large enough for estimation purposes, but small enough to capture the quickly changing structure of the data, which is a difficult problem with monthly data. We recommend `G=18` or `24`. For similar reasons, we recommend the `Score` method. `nu` quantifies how close successive change points are allowed to be declared in the estimation phase; `nu=.1` is a suitably flexible choice. 
+
 ```{r}
-mosumvar_out <- mosumvar_factor(data_vignette[1:200,], p = 1, G= 24, nu = .1, method = "Score")
+mosumvar_out <- mosumvar_factor(panel$panel, p = 1, G= 24, nu = .1, method = "Score")
 ```
 
 ## Pooled forecasting
+
+`pooled_forecast` will forecast the factor series using the most recent estimated change point, using either `robust`,`exp`, or `equal` weights on the models fit prior to the change. `predict` will predict for the panel.
 
 ```{r}
 pooled_forecast_out <- pooled_forecast(factors, cp = mosumvar_out$cps, p =1, window_size = 50, weights = "robust", n.ahead = 6)
 plot(pooled_forecast_out, main = "factor forecast")
 ```
 ```{r}
-panel_forecast <- predict.factor_model(factor_model_out, pooled_forecast_out)
+panel_forecast <- predict(factor_model_out, pooled_forecast_out)
 ```
 
 
 ## Nowcasting
 
+Nowcasting of the GDP component can be performed with e.g. a linear regression model via `lm`, which permits use of the `predict` method. 
+
 ```{r}
-gdp_lm <- lm(mosumvar_gdp_window~ factors)
+lm_data <- data.frame(gdp = panel$gdp, factors)
+gdp_lm <- lm(gdp ~ ., data = lm_data)
 gdp_lm
 plot.ts(gdp_lm$fitted.values, xlab = "Time (Quarter)", ylab = "smoothed change in gdp")
+predict(gdp_lm, newdata = data.frame(gdp = NA, pooled_forecast_out))
 ```
 
 
