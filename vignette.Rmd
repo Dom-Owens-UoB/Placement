@@ -13,10 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Getting data
 
-```{r}
-# install.packages("stats") 
-# install.packages("pracma")
-# devtools::install_github("cykbennie/fbi")
+```{r} 
 library("nausea")
 library("nowcasting")
 ```

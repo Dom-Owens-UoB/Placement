@@ -26,6 +26,7 @@ factor_model <- function(x, max.q=NULL, q=NULL, bn=TRUE, bn.op=2, normalisation=
 		x <- x-mx
 		sdx <- apply(x, 1, sd)
 		x <- x/sdx
+	  # x <- t(scale(t(x)) )
 	} else{
 		mx <- rep(0, n); sdx <- rep(1, n)
 	}

@@ -212,10 +212,11 @@ get_data <- function(observation_end = "2021-06-01"){
   data_big <- ts.intersect(data_fredmd, data_survey)
 
 
-  mosumvar_ts <- ts(data_big[,-146], start = time(data_big)[1], end = time(data_big)[nrow(data_big)], frequency = 12)
-  mosumvar_gdp <- diff(alfred_ts[,25],3)
+  mosumvar_ts <- ts(data_big[,-c(54,97,146)], start = time(data_big)[1], end = time(data_big)[nrow(data_big)], frequency = 12)
+  #mosumvar_gdp <- diff(alfred_ts[,25],3)
   data_mosumvar <- nowcasting::Bpanel(base = mosumvar_ts,
                           trans = rep(0,ncol(mosumvar_ts)),
                           aggregate = FALSE, na.prop = 1, h = 12)
+  
   return(data_mosumvar)
 }
