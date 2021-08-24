@@ -26,7 +26,7 @@ data_vignette <- get_data()
 ## Factor modelling
 
 ```{r}
-factor_model_out <- factor_model(data_vignette[1:200,])
+factor_model_out <- factor_model(data_vignette[1:200,-c(59,102)])
 r_ <- factor_model_out$q.hat
 factors <- factor_model_out$f.q#[,1:r_]
 summary(factor_model_out)
@@ -39,7 +39,7 @@ plot(factor_model_out)
 ## Change point analysis with `mosumvar`
 
 ```{r}
-mosumvar_out <- mosumvar_factor(data_vignette[1:200,], p = 1, G= 24, nu = .1, method = "Score")
+mosumvar_out <- mosumvar_factor(data_vignette[1:200,-c(59,102)], p = 1, G= 24, nu = .1, method = "Score", alpha = 0.1)
 ```
 
 ## Pooled forecasting

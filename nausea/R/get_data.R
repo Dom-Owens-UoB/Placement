@@ -202,17 +202,17 @@ get_data <- function(observation_end = "2021-06-01"){
   #
   # fredmd_3 <- fredmd_2[-(1:17),]
   # fredmd_3[,1] <- as.Date(fredmd_3[,1], format = "%m/%d/%y")
-  duplicates <- which(colnames(current) %in% c(colnames(data_alfred), colnames(survey_series)))
-  fredmd_4 <- current[,-duplicates[-1]]
+  #duplicates <- which(colnames(current) %in% c(colnames(data_alfred), colnames(survey_series)))
+  fredmd_4 <- current#[,-duplicates[-1]]
   fredmd_ts <- ts(fredmd_4[,-1], start = c(2004,6), end = c(2021, 6), frequency = 12)
-  fredmd_trans <- c(rep(0, ncol(fredmd_4)-2), survey_trans)
+ # fredmd_trans <- c(rep(0, ncol(fredmd_4)-2), survey_trans)
   data_fredmd <- nowcasting::Bpanel(base = fredmd_ts,
                         trans = rep(0, ncol(fredmd_4)-1),
                         aggregate = FALSE, na.prop = .75, NA.replace = T)
   data_big <- ts.intersect(data_fredmd, data_survey)
 
-
-  mosumvar_ts <- ts(data_big[,-c(54,97,146)], start = time(data_big)[1], end = time(data_big)[nrow(data_big)], frequency = 12)
+#54,97,
+  mosumvar_ts <- ts(data_big[,-c(146)], start = time(data_big)[1], end = time(data_big)[nrow(data_big)], frequency = 12)
   #mosumvar_gdp <- diff(alfred_ts[,25],3)
   data_mosumvar <- nowcasting::Bpanel(base = mosumvar_ts,
                           trans = rep(0,ncol(mosumvar_ts)),
