@@ -2,7 +2,7 @@
 % Please edit documentation in R/factorcpt.R
 \name{factor_model}
 \alias{factor_model}
-\title{factor_model}
+\title{Fit a factor_model}
 \usage{
 factor_model(
   x,
@@ -30,5 +30,8 @@ factor_model(
 factor_model object
 }
 \description{
-factor_model
+Extracts factors, loadings, and estimates the factor number
+}
+\examples{
+factor_model(panel$panel)
 }

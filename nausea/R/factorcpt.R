@@ -1,7 +1,9 @@
 # factorcpt code
 ##########################################
 
-#' factor_model
+#' Fit a factor_model
+#'
+#' Extracts factors, loadings, and estimates the factor number
 #'
 #' @param x data matrix, with series as columns
 #' @param max.q integer maximum factor number to consider
@@ -13,7 +15,7 @@
 #' @return factor_model object
 #' @export
 #'
-#' @examples
+#' @examples factor_model(panel$panel)
 factor_model <- function(x, max.q=NULL, q=NULL, bn=TRUE, bn.op=2, normalisation=TRUE){
   x <- t(x)
 	T <- ncol(x); n <- nrow(x)
@@ -64,7 +66,7 @@ factor_model <- function(x, max.q=NULL, q=NULL, bn=TRUE, bn.op=2, normalisation=
 	return(out)
 }
 
-#' Title
+#' Predict from a factor_model and forecasted factors
 #'
 #' @param fm factor_model object
 #' @param newdata matrix of (factor) data to predict from
@@ -72,7 +74,10 @@ factor_model <- function(x, max.q=NULL, q=NULL, bn=TRUE, bn.op=2, normalisation=
 #' @return matrix of predictions
 #' @export
 #'
-#' @examples
+#' @examples fm <- factor_model(panel$panel)
+#' ar_fm <- ar(fm$f.q, p=1)
+#' ar_pred <- predict(ar_fm, fm$f.q, n.ahead = 3)
+#' fm_pred <- predict(fm, ar_pred$pred)
 predict.factor_model <- function(fm, newdata) {
   out <- (newdata) %*% fm$lam.q
   out <- as.ts(out)
@@ -80,28 +85,30 @@ predict.factor_model <- function(fm, newdata) {
 }
 
 
-#' Title
+#' Plot a factor_model object
 #'
 #' @param fm factor_model object
 #'
 #' @return a plot of the information criterion against q, and a plot of the factor series
 #' @export
 #'
-#' @examples
+#' @examples fm <- factor_model(panel$panel)
+#' plot(fm)
 plot.factor_model <- function(fm){
   par(mfrow=c(1,1))
   plot(fm$ic, ylab = "IC", xlab = "factor number"); abline(v = fm$q.hat, col = "red")
   if(fm$q.hat > 6) ts.plot(fm$f.q, main = "factors") else plot.ts(fm$f.q, main = "factors")
 }
 
-#' Title
+#' Summarise a factor_model object
 #'
 #' @param fm factor_model object
 #'
 #' @return summary of factor_model object
 #' @export
 #'
-#' @examples
+#' @examples fm <- factor_model(panel$panel)
+#' summary(fm)
 summary.factor_model <- function(fm){
   cat("Information criterion: ", fm$ic, "\n")
   cat("Factor number: ", fm$q.hat, "\n")

@@ -62,3 +62,6 @@ mosumvar object
 \description{
 Change point detection for a factor model with VAR dynamics
 }
+\examples{
+mosumvar_factor(panel$panel, p = 1, G = 24, method = "Score")
+}

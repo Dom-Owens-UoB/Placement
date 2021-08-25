@@ -10,8 +10,8 @@ pooled_forecast(
   window_size = NULL,
   p = NULL,
   n.ahead = 1,
-  weights = c("equal", "exp", "robust")[1],
-  return_params = F
+  weights = c("equal", "exp", "robust", "rolling")[1],
+  return_model = F
 )
 }
 \arguments{
@@ -27,11 +27,15 @@ pooled_forecast(
 
 \item{weights}{String of weight method to use}
 
-\item{return_params}{Boolean, return model parameters and forecast variance}
+\item{return_model}{Boolean, return `ar` model}
 }
 \value{
-matrix of forecasts, or list also containing model parameters and forecast variance
+list of class "pooled_forecast" containing matrix of forecasts, weight vector, and model
 }
 \description{
 Change point based forecasting methods for factor series
+}
+\examples{
+fm <- factor_model(panel$panel)
+pooled_forecast(fm$f.q)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/factorcpt.R
 \name{plot.factor_model}
 \alias{plot.factor_model}
-\title{Title}
+\title{Plot a factor_model object}
 \usage{
 \method{plot}{factor_model}(fm)
 }
@@ -13,5 +13,9 @@
 a plot of the information criterion against q, and a plot of the factor series
 }
 \description{
-Title
+Plot a factor_model object
+}
+\examples{
+fm <- factor_model(panel$panel)
+plot(fm)
 }

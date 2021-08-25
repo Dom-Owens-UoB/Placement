@@ -2,7 +2,7 @@
 % Please edit documentation in R/factorcpt.R
 \name{summary.factor_model}
 \alias{summary.factor_model}
-\title{Title}
+\title{Summarise a factor_model object}
 \usage{
 \method{summary}{factor_model}(fm)
 }
@@ -13,5 +13,9 @@
 summary of factor_model object
 }
 \description{
-Title
+Summarise a factor_model object
+}
+\examples{
+fm <- factor_model(panel$panel)
+summary(fm)
 }

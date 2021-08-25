@@ -2,7 +2,7 @@
 % Please edit documentation in R/factorcpt.R
 \name{predict.factor_model}
 \alias{predict.factor_model}
-\title{Title}
+\title{Predict from a factor_model and forecasted factors}
 \usage{
 \method{predict}{factor_model}(fm, newdata)
 }
@@ -15,5 +15,11 @@
 matrix of predictions
 }
 \description{
-Title
+Predict from a factor_model and forecasted factors
+}
+\examples{
+fm <- factor_model(panel$panel)
+ar_fm <- ar(fm$f.q, p=1)
+ar_pred <- predict(ar_fm, fm$f.q, n.ahead = 3)
+fm_pred <- predict(fm, ar_pred$pred)
 }
