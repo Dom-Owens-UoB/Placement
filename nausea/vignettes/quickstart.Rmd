@@ -1,8 +1,8 @@
 ---
 title: 'Quick start for nausea'
 output:
-  pdf_document: default
   rmarkdown::html_vignette: default
+  pdf_document: default
 vignette: |
   %\VignetteIndexEntry{nausea} %\VignetteEngine{knitr::rmarkdown} \usepackage[utf8]{inputenc}
 ---

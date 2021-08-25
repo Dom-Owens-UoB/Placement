@@ -1,8 +1,10 @@
 ---
 title: 'nausea: Nowcasting Under Structural Breaks'
 output:
-  pdf_document: default
   rmarkdown::html_vignette: default
+  html_document:
+    df_print: paged
+  pdf_document: default
 vignette: |
   %\VignetteIndexEntry{nausea} %\VignetteEngine{knitr::rmarkdown} \usepackage[utf8]{inputenc}
 ---
